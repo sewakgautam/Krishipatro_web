@@ -1,0 +1,122 @@
+{
+  "region": "तराई तथा खोंच",
+  "current_date": "2025-07-19",
+  "current_nepali_date": {
+    "year": 2082,
+    "month": 4,
+    "month_name": "श्रावण",
+    "date": 3
+  },
+  "month_mapping": [
+    {"nepali": "बैशाख", "english": "Baisakh", "index": 1, "english_months": ["April-May"]},
+    {"nepali": "जेठ", "english": "Jestha", "index": 2, "english_months": ["May-June"]},
+    {"nepali": "असार", "english": "Ashadh", "index": 3, "english_months": ["June-July"]},
+    {"nepali": "श्रावण", "english": "Shrawan", "index": 4, "english_months": ["July-August"]},
+    {"nepali": "भदौ", "english": "Bhadra", "index": 5, "english_months": ["August-September"]},
+    {"nepali": "आश्विन", "english": "Ashwin", "index": 6, "english_months": ["September-October"]},
+    {"nepali": "कार्तिक", "english": "Kartik", "index": 7, "english_months": ["October-November"]},
+    {"nepali": "मंसिर", "english": "Mangsir", "index": 8, "english_months": ["November-December"]},
+    {"nepali": "पुष", "english": "Poush", "index": 9, "english_months": ["December-January"]},
+    {"nepali": "माघ", "english": "Magh", "index": 10, "english_months": ["January-February"]},
+    {"nepali": "फाल्गुण", "english": "Falgun", "index": 11, "english_months": ["February-March"]},
+    {"nepali": "चैत", "english": "Chaitra", "index": 12, "english_months": ["March-April"]}
+  ],
+  "crops": [
+    {
+      "name": "धान",
+      "name_english": "Rice",
+      "varieties": ["वर्षा", "मनसुली", "सुगन्धा"],
+      "varieties_english": ["Barsha", "Mansuli", "Sugandha"],
+      "sowing_time": {
+        "nepali_months": ["असार"],
+        "month_indices": [3],
+        "english_equivalent": ["June-July"]
+      },
+      "harvest_time": {
+        "nepali_months": ["मंसिर", "पुष"],
+        "month_indices": [8, 9],
+        "english_equivalent": ["November-December", "December-January"]
+      },
+      "spacing_cm": "20x15",
+      "seed_rate": "40 केजी प्रति हेक्टर",
+      "seed_rate_english": "40 kg per hectare",
+      "suitable_crop_rotation": ["गहुँ", "सरसो"],
+      "suitable_crop_rotation_english": ["Wheat", "Mustard"],
+      "priority": 1,
+      "difficulty": "easy",
+      "water_requirement": "high",
+      "notes": [
+        "वर्षाको समयमा रोप्ने उत्तम।",
+        "जैविक मल प्रयोग गर्ने।"
+      ],
+      "notes_english": [
+        "Best planted during monsoon season.",
+        "Use organic fertilizers."
+      ]
+    },
+    {
+      "name": "तिल",
+      "name_english": "Sesame",
+      "varieties": ["स्थानीय", "कृष्ण"],
+      "varieties_english": ["Local", "Krishna"],
+      "sowing_time": {
+        "nepali_months": ["श्रावण"],
+        "month_indices": [4],
+        "english_equivalent": ["July-August"]
+      },
+      "harvest_time": {
+        "nepali_months": ["कार्तिक"],
+        "month_indices": [7],
+        "english_equivalent": ["October-November"]
+      },
+      "spacing_cm": "30x10",
+      "seed_rate": "5-6 केजी प्रति हेक्टर",
+      "seed_rate_english": "5-6 kg per hectare",
+      "suitable_crop_rotation": ["धान", "गहुँ"],
+      "suitable_crop_rotation_english": ["Rice", "Wheat"],
+      "priority": 2,
+      "difficulty": "medium",
+      "water_requirement": "medium",
+      "notes": [
+        "बर्षाको समयमा रोप्ने राम्रो।",
+        "पानी जमेको ठाउँमा नलगाउने।"
+      ],
+      "notes_english": [
+        "Good to plant during rainy season.",
+        "Don't plant in waterlogged areas."
+      ]
+    },
+    {
+      "name": "मकै",
+      "name_english": "Maize/Corn",
+      "varieties": ["रामपुर कम्पोजिट", "पूर्ण हाइब्रिड"],
+      "varieties_english": ["Rampur Composite", "Full Hybrid"],
+      "sowing_time": {
+        "nepali_months": ["चैत", "बैशाख", "जेठ"],
+        "month_indices": [12, 1, 2],
+        "english_equivalent": ["March-April", "April-May", "May-June"]
+      },
+      "harvest_time": {
+        "nepali_months": ["भदौ", "आश्विन"],
+        "month_indices": [5, 6],
+        "english_equivalent": ["August-September", "September-October"]
+      },
+      "spacing_cm": "75x25",
+      "seed_rate": "25 केजी प्रति हेक्टर",
+      "seed_rate_english": "25 kg per hectare",
+      "suitable_crop_rotation": ["धान", "गहुँ"],
+      "suitable_crop_rotation_english": ["Rice", "Wheat"],
+      "priority": 1,
+      "difficulty": "easy",
+      "water_requirement": "medium",
+      "notes": [
+        "पानी जमेको ठाउँमा नलगाउने।",
+        "पूर्ण बाली भएपछि फसल गर्ने।"
+      ],
+      "notes_english": [
+        "Don't plant in waterlogged areas.",
+        "Harvest after full maturity."
+      ]
+    }
+  ]
+}
