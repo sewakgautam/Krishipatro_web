@@ -11,22 +11,18 @@ import {
   User,
 } from "lucide-react";
 import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
   signInWithPhoneNumber,
   RecaptchaVerifier,
   ConfirmationResult,
   updateProfile,
 } from "firebase/auth";
-import { auth } from "../../../firebaseauth";
+import { auth } from "../../firebaseauth";
 
 declare global {
   interface Window {
     recaptchaVerifier?: RecaptchaVerifier;
     recaptchaWidgetId?: number;
     confirmationResult?: ConfirmationResult;
-    
   }
 }
 
@@ -361,7 +357,7 @@ export default function LoginPage() {
               // Details Step (Name + Phone Number)
               <>
                 {/* Name Field */}
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
                     {t.name}
                   </label>
@@ -379,7 +375,7 @@ export default function LoginPage() {
                       required
                     />
                   </div>
-                </div>
+                </div> */}
 
                 {/* Phone Number Field */}
                 <div className="space-y-2">

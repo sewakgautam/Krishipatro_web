@@ -3,24 +3,37 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth } from 'firebase/auth';
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-import './envConfig.ts'
-
-
+if (typeof window === 'undefined') {
+  const { loadEnvConfig } = require('@next/env');
+  loadEnvConfig(process.cwd());
+}
+console.log(process.env.FIRE_API_KEY,process.env.FIRE_AUTH_DOMAIN)
 const firebaseConfig = {
-  apiKey: process.env.FIRE_API_KEY,
-  authDomain: process.env.FIRE_AUTH_DOMAIN,
-  databaseURL: process.env.FIRE_DATABASE,
-  projectId: process.env.FIRE_PROJECT_ID,
-  storageBucket: process.env.FIRE_STORAGEBUCKET,
-  messagingSenderId: process.env.FIRE_MESSAGINGSENDERID,
-  appId: process.env.FIRE_APP_ID,
-  measurementId: process.env.FIRE_MEASUREMENT_ID
+  apiKey: process.env.NEXT_PUBLIC_FIRE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIRE_AUTH_DOMAIN,
+  databaseURL: process.env.NEXT_PUBLIC_FIRE_DATABASE,
+  projectId: process.env.NEXT_PUBLIC_FIRE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIRE_STORAGEBUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIRE_MESSAGINGSENDERID,
+  appId: process.env.NEXT_PUBLIC_FIRE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIRE_MEASUREMENT_ID
 };
+
+// Log just whether keys exist, not their values
+console.log("Firebase config keys loaded:");
+console.log({
+  apiKeyExists: !!firebaseConfig.apiKey,
+  authDomainExists: !!firebaseConfig.authDomain,
+  projectIdExists: !!firebaseConfig.projectId,
+  // ...check other keys similarly
+});
+
 
 // Initialize Firebase
 
