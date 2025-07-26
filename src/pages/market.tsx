@@ -231,7 +231,7 @@ const MarketPage: React.FC = () => {
                   type="date"
                   value={selectedDate}
                   onChange={(e) => handleDateChange(e.target.value)}
-                  className="text-xs sm:text-sm border border-gray-300 rounded-lg px-2 sm:px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 flex-1 sm:flex-initial"
+                  className="text-xs sm:text-sm border text-black border-gray-300 rounded-lg px-2 sm:px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 flex-1 sm:flex-initial"
                 />
               </div>
               
