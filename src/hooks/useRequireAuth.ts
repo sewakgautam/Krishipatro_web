@@ -13,7 +13,7 @@ export const useRequireAuth = (requireComplete = true) => {
         return;
       }
 
-      if (requireComplete && (!userData || !userData.name)) {
+      if (requireComplete && (!userData || !userData.userName)) {
         router.push('/complete-profile');
         return;
       }

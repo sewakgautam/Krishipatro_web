@@ -2,7 +2,7 @@
 import React from "react";
 
 import { Wheat, LogOut, User, Phone } from "lucide-react";
-import { useAuth } from "./contexts/firebaseauthcontext";
+import { useAuth } from "@/contexts/firebaseauthcontext";
 import ProtectedRoute from "./Components/ProtectedRoute";
 
 export default function Dashboard() {

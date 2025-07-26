@@ -12,10 +12,10 @@ export const useAuthRedirect = () => {
       
       if (user) {
         // User is authenticated
-        if (!userData?.name && currentPath !== '/complete-profile') {
+        if (!userData?.userName && currentPath !== '/complete-profile') {
           // Profile incomplete, redirect to complete profile
           router.push('/complete-profile');
-        } else if (userData?.name && (currentPath === '/login' || currentPath === '/complete-profile')) {
+        } else if (userData?.userName && (currentPath === '/login' || currentPath === '/complete-profile')) {
           // Profile complete but on auth pages, redirect to dashboard
           router.push('/dashboard');
         }
