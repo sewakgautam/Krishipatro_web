@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { DateTime } from "luxon";
 
-
 type MarketPriceRaw = {
   headers: {
     id: number;
@@ -41,7 +40,6 @@ export default async function handler(
     .setZone("Asia/Kathmandu")
     .minus({ days: DAYS_TO_SUBTRACT_FOR_YESTERDAY })
     .toFormat("yyyy-MM-dd");
-
 
   const resp = await fetch(
     `https://krishibajar.koshi.gov.np/api/market/market_price_summary/market_data/?&date=${yesterdayInNepal}`,
