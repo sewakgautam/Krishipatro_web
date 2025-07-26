@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, TrendingUp, TrendingDown, Minus, MapPin, Calendar, Leaf, BarChart3, Filter, RefreshCw, CalendarDays, Menu, X } from 'lucide-react';
+import Image from 'next/image';
 
 interface MarketHeader {
   id: number;
@@ -213,15 +214,18 @@ const MarketPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl flex items-center justify-center">
-                <Leaf className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-emerald-600 to-green-700 bg-clip-text text-transparent">
-                  कृषि पात्रो
-                </h1>
-                <p className="text-sm sm:text-base text-emerald-600 font-medium">बजार मूल्य सूचना</p>
-              </div>
+              <div className="flex items-center justify-center gap-3">
+                            <div className="flex items-center gap-3">
+                                        <Image
+                                          src={"/mainlogo.png"}
+                                          alt="Description"
+                                          width={300}
+                                          height={40}
+                                          className="rounded-full"
+                                        />
+                                      </div>
+                          </div>
+              
             </div>
             
             <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
