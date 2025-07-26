@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { DateTime } from "luxon";
+import * as cheerio from "cheerio";
 
 type MarketPriceRaw = {
   headers: {
@@ -30,6 +31,48 @@ type MarketPriceRaw = {
     }[];
   };
 };
+
+async function parseKalimatiMarketPriceData(): Promise<
+  Array<MarketPriceRaw["data"][string][number]>
+> {
+  const url = "https://kalimatimarket.gov.np/lang/en";
+  const resp = await fetch(url);
+  const html = await resp.text();
+  const $ = cheerio.load(html);
+  const tableRows: string[][] = [];
+  const table = $("#commodityDailyPrice");
+
+  table.find("tbody tr").each((_: number, row: any) => {
+    const rowData: string[] = [];
+    $(row)
+      .find("td")
+      .each((_: number, cell: any) => {
+        rowData.push($(cell).text().trim());
+      });
+    if (rowData.length > 0) {
+      tableRows.push(rowData);
+    }
+  });
+  return tableRows.map((row) => {
+    return {
+      id: 0x0,
+      date: "",
+      maxPrice: row[2] as unknown as number, // TODO: fix this type - This is just to test the API. Need to be fix with actual number parsing
+      minPrice: row[1] as unknown as number, // TODO: fix this type
+      avgPrice: row[3] as unknown as number, // TODO: fix this type
+      market: 5,
+      marketName: "Kalimati",
+      marketNameNe: "Kalimati",
+      productSubType: Number(row[0]),
+      productSubTypeName: row[0],
+      productSubTypeNameNe: row[0],
+      dateNepali: "",
+      averageDiff: 0,
+      percentChange: 0,
+      unit: "kg",
+    };
+  });
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -74,9 +117,14 @@ export default async function handler(
       headers: [],
       rows: [],
       data: {},
-      error: "Failed to fetch or parse market price data from external service.",
+      error:
+        "Failed to fetch or parse market price data from external service.",
     } as any);
   }
+
+  const kalimatiData = await parseKalimatiMarketPriceData();
+
+  data.data["5"] = kalimatiData;
 
   return res.status(resp.status).json(data);
 }
