@@ -38,8 +38,10 @@ import {
   Award,
   MapPin,
   Phone,
+  UserLock,
 } from "lucide-react";
 import Image from "next/image";
+import Link from 'next/link';
 
 // Header Component
 const Header = ({
@@ -215,10 +217,10 @@ const HeroSection = ({ t, language }: { t: any; language: string }) => {
                 <Download className="w-5 h-5" />
                 {t.hero.downloadButton}
               </button>
-              <button className="bg-white hover:bg-gray-50 text-gray-800 border-2 border-gray-200 hover:border-gray-300 px-8 py-4 rounded-xl font-semibold text-lg transition-all hover:shadow-lg flex items-center justify-center gap-3">
-                <Play className="w-5 h-5" />
-                {t.hero.watchDemo}
-              </button>
+              <Link href={'/login'} className="bg-white hover:bg-gray-50 text-gray-800 border-2 border-gray-200 hover:border-gray-300 px-8 py-4 rounded-xl font-semibold text-lg transition-all hover:shadow-lg flex items-center justify-center gap-3">
+                <UserLock className="w-5 h-5"/>
+                {t.hero.getStart}
+              </Link>
             </div>
 
             {/* Stats */}
@@ -600,22 +602,22 @@ const HowItWorksSection = ({ t, language }: { t: any; language: string }) => {
 const TestimonialsSection = ({ t, language }: { t: any; language: string }) => {
   const testimonials = [
     {
-      name: language === "np" ? "रामकृष्ण श्रेष्ठ" : "Ramkrishna Shrestha",
-      location: language === "np" ? "धनकुटा" : "Dhankuta",
+      name: language === "np" ? "बुद्धी प्रसाद पराजुली " : "Buddhi Prasad Parajuli",
+      location: language === "np" ? "सुन्दरहरैचा" : "Sundar Haraicha",
       image: "👨‍🌾",
-      rating: 5,
+      rating: 4,
       text: t.testimonials.testimonial1,
     },
     {
       name: language === "np" ? "सुनिता गुरुङ" : "Sunita Gurung",
-      location: language === "np" ? "पोखरा" : "Pokhara",
+      location: language === "np" ? "बेलबारी" : "Belbari",
       image: "👩‍🌾",
       rating: 5,
       text: t.testimonials.testimonial2,
     },
     {
       name: language === "np" ? "दिलबहादुर तामाङ" : "Dilbahadur Tamang",
-      location: language === "np" ? "सिन्धुपाल्चोक" : "Sindhupalchok",
+      location: language === "np" ? "झापा" : "Jhapa",
       image: "👨‍🌾",
       rating: 5,
       text: t.testimonials.testimonial3,
@@ -913,7 +915,7 @@ export default function KrishiPatroWebsite() {
         subtitle:
           "तपाईंको बालीको सम्पूर्ण जीवनचक्र व्यवस्थापन गर्नुहोस्। बीउ रोप्ने देखि फसल काट्ने सम्म, हरेक चरणमा सही समयमा सही जानकारी पाउनुहोस्।",
         downloadButton: "अहिले डाउनलोड गर्नुहोस्",
-        watchDemo: "डेमो हेर्नुहोस्",
+        getStart: "सुरु गर्नुहोस्",
         stats: {
           farmers: "किसानहरू",
           crops: "बालीहरू",
@@ -1027,7 +1029,7 @@ export default function KrishiPatroWebsite() {
         subtitle:
           "Manage your crop's complete lifecycle. Get personalized recommendations based on your planting date, with real-time notifications for watering, fertilizing, pest control, and harvesting.",
         downloadButton: "Download Now",
-        watchDemo: "Watch Demo",
+        getStart: "Get Start",
         stats: {
           farmers: "Farmers",
           crops: "Crops",
