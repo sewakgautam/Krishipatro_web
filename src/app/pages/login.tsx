@@ -23,9 +23,10 @@ import { auth } from "../../../firebaseauth";
 
 declare global {
   interface Window {
-    recaptchaVerifier: RecaptchaVerifier;
+    recaptchaVerifier?: RecaptchaVerifier;
     recaptchaWidgetId?: number;
     confirmationResult?: ConfirmationResult;
+    
   }
 }
 
@@ -38,7 +39,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [language, setLanguage] = useState<"np" | "en">("np");
   const [step, setStep] = useState<"details" | "code">("details"); // Two-step process
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [confirmationResult, setConfirmationResult] =
+    useState<ConfirmationResult | null>(null);
   const [recaptchaInitialized, setRecaptchaInitialized] = useState(false);
   const recaptchaRef = useRef<HTMLDivElement>(null);
 
@@ -53,27 +55,33 @@ export default function LoginPage() {
     }
 
     try {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaRef.current, {
-        size: 'normal',
-        callback: (response: any) => {
-          console.log("reCAPTCHA solved");
-          setRecaptchaInitialized(true);
-        },
-        'expired-callback': () => {
-          console.log("reCAPTCHA expired");
-          setRecaptchaInitialized(false);
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        auth,
+        recaptchaRef.current,
+        {
+          size: "normal",
+          callback: (response: any) => {
+            console.log("reCAPTCHA solved");
+            setRecaptchaInitialized(true);
+          },
+          "expired-callback": () => {
+            console.log("reCAPTCHA expired");
+            setRecaptchaInitialized(false);
+          },
         }
-      });
+      );
 
       // Render the reCAPTCHA
-      window.recaptchaVerifier.render().then((widgetId) => {
-        console.log("reCAPTCHA rendered with widget ID:", widgetId);
-        setRecaptchaInitialized(true);
-      }).catch((error) => {
-        console.error("Error rendering reCAPTCHA:", error);
-        setRecaptchaInitialized(false);
-      });
-
+      window.recaptchaVerifier
+        .render()
+        .then((widgetId) => {
+          console.log("reCAPTCHA rendered with widget ID:", widgetId);
+          setRecaptchaInitialized(true);
+        })
+        .catch((error) => {
+          console.error("Error rendering reCAPTCHA:", error);
+          setRecaptchaInitialized(false);
+        });
     } catch (error) {
       console.error("Error initializing reCAPTCHA:", error);
       setRecaptchaInitialized(false);
@@ -118,9 +126,7 @@ export default function LoginPage() {
     // Basic validation
     if (!formData.phoneNumber || !formData.name) {
       alert(
-        language === "np" 
-          ? "सबै फिल्ड भर्नुहोस्" 
-          : "Please fill all fields"
+        language === "np" ? "सबै फिल्ड भर्नुहोस्" : "Please fill all fields"
       );
       setIsLoading(false);
       return;
@@ -128,8 +134,8 @@ export default function LoginPage() {
 
     if (!recaptchaInitialized || !window.recaptchaVerifier) {
       alert(
-        language === "np" 
-          ? "reCAPTCHA पूरा गर्नुहोस्" 
+        language === "np"
+          ? "reCAPTCHA पूरा गर्नुहोस्"
           : "Please complete the reCAPTCHA"
       );
       setIsLoading(false);
@@ -138,48 +144,54 @@ export default function LoginPage() {
 
     // Format phone number (add +977 for Nepal if not present)
     let phoneNumber = formData.phoneNumber.trim();
-    if (!phoneNumber.startsWith('+')) {
-      phoneNumber = '+977' + phoneNumber;
+    if (!phoneNumber.startsWith("+")) {
+      phoneNumber = "+977" + phoneNumber;
     }
 
     try {
-      const result = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
+      const result = await signInWithPhoneNumber(
+        auth,
+        phoneNumber,
+        window.recaptchaVerifier
+      );
       setConfirmationResult(result);
       window.confirmationResult = result;
       setStep("code");
-      
+
       alert(
-        language === "np" 
-          ? "कोड पठाइयो। आफ्नो फोनमा चेक गर्नुहोस्।" 
+        language === "np"
+          ? "कोड पठाइयो। आफ्नो फोनमा चेक गर्नुहोस्।"
           : "Code sent! Check your phone."
       );
     } catch (error: any) {
       console.error("Error sending code:", error);
-      
-      let errorMessage = language === "np"
-        ? "कोड पठाउन सकिएन। पुनः प्रयास गर्नुहोस्।"
-        : "Failed to send code. Please try again.";
+
+      let errorMessage =
+        language === "np"
+          ? "कोड पठाउन सकिएन। पुनः प्रयास गर्नुहोस्।"
+          : "Failed to send code. Please try again.";
 
       // Handle specific Firebase errors
-      if (error.code === 'auth/invalid-phone-number') {
-        errorMessage = language === "np"
-          ? "गलत फोन नम्बर ढाँचा।"
-          : "Invalid phone number format.";
-      } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = language === "np"
-          ? "धेरै प्रयासहरू। केहि समय पछि प्रयास गर्नुहोस्।"
-          : "Too many attempts. Please try again later.";
+      if (error.code === "auth/invalid-phone-number") {
+        errorMessage =
+          language === "np"
+            ? "गलत फोन नम्बर ढाँचा।"
+            : "Invalid phone number format.";
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage =
+          language === "np"
+            ? "धेरै प्रयासहरू। केहि समय पछि प्रयास गर्नुहोस्।"
+            : "Too many attempts. Please try again later.";
       }
-      
+
       alert(errorMessage);
-      
+
       // Reset reCAPTCHA on error
       clearRecaptcha();
       // Reinitialize after a short delay
       setTimeout(() => {
         initializeRecaptcha();
       }, 1000);
-      
     } finally {
       setIsLoading(false);
     }
@@ -191,16 +203,20 @@ export default function LoginPage() {
 
     if (!formData.verificationCode || !confirmationResult) {
       alert(
-        language === "np" ? "कोड भर्नुहोस्" : "Please enter the verification code"
+        language === "np"
+          ? "कोड भर्नुहोस्"
+          : "Please enter the verification code"
       );
       setIsLoading(false);
       return;
     }
 
     try {
-      const result = await confirmationResult.confirm(formData.verificationCode);
+      const result = await confirmationResult.confirm(
+        formData.verificationCode
+      );
       const user = result.user;
-      
+
       // Update user profile with the name
       try {
         await updateProfile(user, {
@@ -211,17 +227,17 @@ export default function LoginPage() {
         console.error("Error updating profile:", profileError);
         // Don't fail the login if profile update fails
       }
-      
+
       console.log("User signed in:", user);
       console.log("User display name:", user.displayName);
       console.log("User phone number:", user.phoneNumber);
-      
+
       alert(
-        language === "np" 
-          ? `स्वागत छ, ${formData.name}! सफलतापूर्वक लग इन भयो!` 
+        language === "np"
+          ? `स्वागत छ, ${formData.name}! सफलतापूर्वक लग इन भयो!`
           : `Welcome, ${formData.name}! Login successful!`
       );
-      
+
       // Here you can also save additional user data to Firestore if needed
       // Example:
       // await setDoc(doc(db, "users", user.uid), {
@@ -229,27 +245,29 @@ export default function LoginPage() {
       //   phoneNumber: user.phoneNumber,
       //   createdAt: new Date(),
       // });
-      
+
       // Redirect to home or dashboard
       // router.push('/home');
-      
     } catch (error: any) {
       console.error("Error verifying code:", error);
-      
-      let errorMessage = language === "np"
-        ? "गलत कोड। पुनः प्रयास गर्नुहोस्।"
-        : "Invalid code. Please try again.";
 
-      if (error.code === 'auth/invalid-verification-code') {
-        errorMessage = language === "np"
-          ? "गलत पुष्टिकरण कोड।"
-          : "Invalid verification code.";
-      } else if (error.code === 'auth/code-expired') {
-        errorMessage = language === "np"
-          ? "कोडको समय सकिएको छ। नयाँ कोड माग्नुहोस्।"
-          : "Code expired. Please request a new code.";
+      let errorMessage =
+        language === "np"
+          ? "गलत कोड। पुनः प्रयास गर्नुहोस्।"
+          : "Invalid code. Please try again.";
+
+      if (error.code === "auth/invalid-verification-code") {
+        errorMessage =
+          language === "np"
+            ? "गलत पुष्टिकरण कोड।"
+            : "Invalid verification code.";
+      } else if (error.code === "auth/code-expired") {
+        errorMessage =
+          language === "np"
+            ? "कोडको समय सकिएको छ। नयाँ कोड माग्नुहोस्।"
+            : "Code expired. Please request a new code.";
       }
-      
+
       alert(errorMessage);
     } finally {
       setIsLoading(false);
@@ -258,7 +276,7 @@ export default function LoginPage() {
 
   const handleBackToDetails = () => {
     setStep("details");
-    setFormData(prev => ({ ...prev, verificationCode: "" }));
+    setFormData((prev) => ({ ...prev, verificationCode: "" }));
     setConfirmationResult(null);
     // Reinitialize reCAPTCHA
     setTimeout(() => {
@@ -269,7 +287,10 @@ export default function LoginPage() {
   const texts = {
     np: {
       title: step === "details" ? "विवरण भर्नुहोस्" : "कोड भर्नुहोस्",
-      subtitle: step === "details" ? "आफ्नो नाम र फोन नम्बर भर्नुहोस्" : "SMS मा आएको कोड भर्नुहोस्",
+      subtitle:
+        step === "details"
+          ? "आफ्नो नाम र फोन नम्बर भर्नुहोस्"
+          : "SMS मा आएको कोड भर्नुहोस्",
       name: "पूरा नाम",
       phoneNumber: "फोन नम्बर",
       verificationCode: "पुष्टिकरण कोड",
@@ -287,7 +308,10 @@ export default function LoginPage() {
     },
     en: {
       title: step === "details" ? "Enter Details" : "Enter Code",
-      subtitle: step === "details" ? "Enter your name and phone number" : "Enter the code sent to your phone",
+      subtitle:
+        step === "details"
+          ? "Enter your name and phone number"
+          : "Enter the code sent to your phone",
       name: "Full Name",
       phoneNumber: "Phone Number",
       verificationCode: "Verification Code",
@@ -349,7 +373,9 @@ export default function LoginPage() {
                       value={formData.name}
                       onChange={handleInputChange}
                       className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-base text-black"
-                      placeholder={language === "np" ? "राम बहादुर" : "John Doe"}
+                      placeholder={
+                        language === "np" ? "राम बहादुर" : "John Doe"
+                      }
                       required
                     />
                   </div>
@@ -373,8 +399,8 @@ export default function LoginPage() {
                     />
                   </div>
                   <p className="text-xs text-gray-500">
-                    {language === "np" 
-                      ? "नेपालको फोन नम्बर (९८XXXXXXXX)" 
+                    {language === "np"
+                      ? "नेपालको फोन नम्बर (९८XXXXXXXX)"
                       : "Nepal phone number (98XXXXXXXX)"}
                   </p>
                 </div>
@@ -393,7 +419,12 @@ export default function LoginPage() {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={isLoading || !formData.phoneNumber || !formData.name || !recaptchaInitialized}
+                  disabled={
+                    isLoading ||
+                    !formData.phoneNumber ||
+                    !formData.name ||
+                    !recaptchaInitialized
+                  }
                   onClick={handleDetailsSubmit}
                   className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-base"
                 >
@@ -416,10 +447,12 @@ export default function LoginPage() {
               <>
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                   <p className="text-sm text-green-800">
-                    <strong>{language === "np" ? "नाम:" : "Name:"}</strong> {formData.name}
+                    <strong>{language === "np" ? "नाम:" : "Name:"}</strong>{" "}
+                    {formData.name}
                   </p>
                   <p className="text-sm text-green-800">
-                    <strong>{language === "np" ? "फोन:" : "Phone:"}</strong> +977{formData.phoneNumber}
+                    <strong>{language === "np" ? "फोन:" : "Phone:"}</strong>{" "}
+                    +977{formData.phoneNumber}
                   </p>
                 </div>
 
