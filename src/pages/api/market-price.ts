@@ -35,48 +35,65 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<MarketPriceRaw>
 ) {
-  const DAYS_TO_SUBTRACT_FOR_YESTERDAY = 2;
-  const yesterdayInNepal = DateTime.now()
-    .setZone("Asia/Kathmandu")
-    .minus({ days: DAYS_TO_SUBTRACT_FOR_YESTERDAY })
-    .toFormat("yyyy-MM-dd");
-
-  const resp = await fetch(
-    `https://krishibajar.koshi.gov.np/api/market/market_price_summary/market_data/?&date=${yesterdayInNepal}`,
-    {
-      credentials: "omit",
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0",
-        Accept: "application/json, text/plain, */*",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Camel-Case": "true",
-        "Sec-Fetch-Dest": "empty",
-        "Sec-Fetch-Mode": "cors",
-        "Sec-Fetch-Site": "same-origin",
-        "Sec-GPC": "1",
-      },
-      referrer: "https://krishibajar.koshi.gov.np/market-prices",
-      method: "GET",
-      mode: "cors",
-    }
-  );
-  let data: MarketPriceRaw | null = null;
+  // Get date from query parameter or use default
+  const { date } = req.query;
+  
+  let targetDate: string;
+  
+  if (date && typeof date === 'string') {
+    // Use the provided date
+    targetDate = date;
+  } else {
+    // Default behavior - get yesterday's date
+    const DAYS_TO_SUBTRACT_FOR_YESTERDAY = 2;
+    targetDate = DateTime.now()
+      .setZone("Asia/Kathmandu")
+      .minus({ days: DAYS_TO_SUBTRACT_FOR_YESTERDAY })
+      .toFormat("yyyy-MM-dd");
+  }
 
   try {
+    const resp = await fetch(
+      `https://krishibajar.koshi.gov.np/api/market/market_price_summary/market_data/?&date=${targetDate}`,
+      {
+        credentials: "omit",
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0",
+          Accept: "application/json, text/plain, */*",
+          "Accept-Language": "en-US,en;q=0.5",
+          "Camel-Case": "true",
+          "Sec-Fetch-Dest": "empty",
+          "Sec-Fetch-Mode": "cors",
+          "Sec-Fetch-Site": "same-origin",
+          "Sec-GPC": "1",
+        },
+        referrer: "https://krishibajar.koshi.gov.np/market-prices",
+        method: "GET",
+        mode: "cors",
+      }
+    );
+
+    let data: MarketPriceRaw | null = null;
+
     if (!resp.ok) {
       throw new Error(`External service returned status ${resp.status}`);
     }
+    
     data = (await resp.json()) as MarketPriceRaw;
+    
+    // Add the requested date info to the response for debugging
+    console.log(`Fetching market data for date: ${targetDate}`);
+    
+    return res.status(200).json(data);
+    
   } catch (error) {
     console.error("Error fetching or parsing market price data:", error);
     return res.status(502).json({
       headers: [],
       rows: [],
       data: {},
-      error: "Failed to fetch or parse market price data from external service.",
+      error: `Failed to fetch market price data for date ${targetDate}. ${error instanceof Error ? error.message : 'Unknown error'}`,
     } as any);
   }
-
-  return res.status(resp.status).json(data);
 }

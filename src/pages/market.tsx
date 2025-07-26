@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, TrendingUp, TrendingDown, Minus, MapPin, Calendar, Leaf, BarChart3, Filter, RefreshCw } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, Minus, MapPin, Calendar, Leaf, BarChart3, Filter, RefreshCw, CalendarDays } from 'lucide-react';
 
 interface MarketHeader {
   id: number;
@@ -48,14 +48,30 @@ const MarketPage: React.FC = () => {
   const [selectedMarket, setSelectedMarket] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>('');
 
-  const fetchMarketData = async () => {
+  const formatDate = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  useEffect(() => {
+    const today = new Date();
+    const formattedDate = formatDate(today);
+    setSelectedDate(formattedDate);
+  }, []);
+
+  const fetchMarketData = async (date?: string) => {
     try {
       setRefreshing(true);
       setError(null);
       
-      // Use your internal API route
-      const response = await fetch('/api/market-price', {
+      const dateToFetch = date || selectedDate;
+      const url = dateToFetch ? `/api/market-price?date=${dateToFetch}` : '/api/market-price';
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +84,6 @@ const MarketPage: React.FC = () => {
 
       const data: ApiResponse = await response.json();
       
-      // Check if data has error property
       if ('error' in data) {
         throw new Error((data as any).error);
       }
@@ -86,8 +101,14 @@ const MarketPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchMarketData();
-  }, []);
+    if (selectedDate) {
+      fetchMarketData(selectedDate);
+    }
+  }, [selectedDate]);
+
+  const handleDateChange = (newDate: string) => {
+    setSelectedDate(newDate);
+  };
 
   const getPriceChangeIcon = (percentChange: number) => {
     if (percentChange > 0) return <TrendingUp className="w-4 h-4 text-emerald-500" />;
@@ -165,12 +186,12 @@ const MarketPage: React.FC = () => {
         <div className="bg-white p-8 rounded-xl shadow-lg border border-red-200 max-w-md">
           <div className="text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <i className="text-red-500 text-2xl">⚠️</i>
+              <span className="text-red-500 text-2xl">⚠️</span>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">त्रुटि भयो</h3>
             <p className="text-gray-600 mb-4 text-sm">{error}</p>
             <button
-              onClick={fetchMarketData}
+              onClick={() => fetchMarketData(selectedDate)}
               disabled={refreshing}
               className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -186,7 +207,6 @@ const MarketPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
-      {/* Header with Logo */}
       <div className="bg-white shadow-sm border-b border-emerald-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
@@ -204,8 +224,17 @@ const MarketPage: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <CalendarDays className="w-4 h-4 text-emerald-600" />
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => handleDateChange(e.target.value)}
+                  className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
               <button
-                onClick={fetchMarketData}
+                onClick={() => fetchMarketData(selectedDate)}
                 disabled={refreshing}
                 className="flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -222,7 +251,6 @@ const MarketPage: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
             <div className="flex items-center gap-3">
@@ -273,7 +301,6 @@ const MarketPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Search and Filters */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1 relative">
@@ -320,32 +347,31 @@ const MarketPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Market Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
           {marketData?.headers.map(market => {
             const marketProducts = getAllMarketData().filter(item => item.market === market.id);
             return (
-              <div key={market.id} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-3 bg-emerald-100 rounded-lg">
-                    <MapPin className="w-6 h-6 text-emerald-600" />
+              <div key={market.id} className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-2 bg-emerald-100 rounded-lg">
+                    <MapPin className="w-4 h-4 text-emerald-600" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 text-lg">{market.nameNe}</h3>
-                    <p className="text-sm text-gray-500">{market.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-gray-900 text-sm truncate">{market.nameNe}</h3>
+                    <p className="text-xs text-gray-500 truncate">{market.name}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <p className="text-2xl font-bold text-emerald-600">{marketProducts.length}</p>
-                    <p className="text-sm text-gray-500">उत्पादनहरू</p>
+                    <p className="text-lg font-bold text-emerald-600">{marketProducts.length}</p>
+                    <p className="text-xs text-gray-500">उत्पादन</p>
                   </div>
                   <div>
-                    <p className="text-lg font-semibold text-gray-700">
+                    <p className="text-sm font-semibold text-gray-700">
                       {marketProducts.filter(p => p.percentChange > 0).length}↑ 
                       {marketProducts.filter(p => p.percentChange < 0).length}↓
                     </p>
-                    <p className="text-sm text-gray-500">मूल्य परिवर्तन</p>
+                    <p className="text-xs text-gray-500">परिवर्तन</p>
                   </div>
                 </div>
               </div>
@@ -353,7 +379,6 @@ const MarketPage: React.FC = () => {
           })}
         </div>
 
-        {/* Results Count */}
         <div className="mb-4">
           <p className="text-gray-600">
             <span className="font-semibold">{filteredData.length}</span> उत्पादनहरू फेला परे
@@ -361,7 +386,6 @@ const MarketPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Price Table */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <h2 className="text-xl font-semibold text-gray-900">आजको बजार मूल्य</h2>
@@ -462,7 +486,6 @@ const MarketPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="mt-12 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
