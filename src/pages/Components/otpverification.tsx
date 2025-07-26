@@ -5,9 +5,8 @@ import { ConfirmationResult } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 import toast, { Toaster } from "react-hot-toast";
-import { db } from '../../../firebaseauth';
-import FarmSuccessAnimation from './successanimation';
-
+import { db } from "../../../firebaseauth";
+import FarmSuccessAnimation from "./successanimation";
 
 interface OtpPageProps {
   phoneNumber: string;
@@ -53,7 +52,7 @@ export default function OtpPage({
     }
 
     // Auto-submit when all fields are filled
-    if (newOtp.every(digit => digit !== "") && !isLoading) {
+    if (newOtp.every((digit) => digit !== "") && !isLoading) {
       handleVerifyOtp(newOtp.join(""));
     }
   };
@@ -66,16 +65,19 @@ export default function OtpPage({
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const pastedData = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, 6);
     const newOtp = [...otp];
-    
+
     for (let i = 0; i < pastedData.length; i++) {
       newOtp[i] = pastedData[i];
     }
     setOtp(newOtp);
 
     // Focus the next empty input or last input
-    const nextEmptyIndex = newOtp.findIndex(digit => digit === "");
+    const nextEmptyIndex = newOtp.findIndex((digit) => digit === "");
     const focusIndex = nextEmptyIndex === -1 ? 5 : nextEmptyIndex;
     inputRefs.current[focusIndex]?.focus();
 
@@ -94,11 +96,9 @@ export default function OtpPage({
 
       // Check if user exists in Firestore
       const exists = await checkUserExists(user.uid);
-      
+
       toast.success(
-        language === "np"
-          ? "कोड पुष्टि भयो!"
-          : "Code verified successfully!"
+        language === "np" ? "कोड पुष्टि भयो!" : "Code verified successfully!"
       );
 
       setVerifiedUser(user);
@@ -133,7 +133,7 @@ export default function OtpPage({
 
       toast.error(errorMessage);
       setIsLoading(false);
-      
+
       // Clear OTP on error
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
@@ -185,7 +185,11 @@ export default function OtpPage({
     return (
       <FarmSuccessAnimation
         language={language}
-        message={language === "np" ? "स्वागत पृष्ठमा जाँदै..." : "Taking you to dashboard..."}
+        message={
+          language === "np"
+            ? "स्वागत पृष्ठमा जाँदै..."
+            : "Taking you to dashboard..."
+        }
         onComplete={handleAnimationComplete}
         duration={4000}
       />
@@ -195,7 +199,7 @@ export default function OtpPage({
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 flex items-center justify-center p-4">
       <Toaster position="top-right" />
-      
+
       {/* Language Toggle */}
       <button
         onClick={() => setLanguage(language === "np" ? "en" : "np")}
@@ -221,8 +225,8 @@ export default function OtpPage({
           {/* Phone Number Display */}
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-green-800 text-center">
-              <strong>{language === "np" ? "फोन:" : "Phone:"}</strong>{" "}
-              +977{phoneNumber}
+              <strong>{language === "np" ? "फोन:" : "Phone:"}</strong> +977
+              {phoneNumber}
             </p>
           </div>
 
@@ -232,13 +236,15 @@ export default function OtpPage({
               <label className="block text-sm font-medium text-gray-700 text-center">
                 {t.enterDigits}
               </label>
-              
+
               {/* 6-digit OTP Grid */}
               <div className="flex justify-center gap-3">
                 {otp.map((digit, index) => (
                   <input
                     key={index}
-                    ref={(el) => (inputRefs.current[index] = el)}
+                    ref={(el) => {
+                      inputRefs.current[index] = el;
+                    }}
                     type="text"
                     inputMode="numeric"
                     maxLength={1}
@@ -247,18 +253,23 @@ export default function OtpPage({
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     onPaste={index === 0 ? handlePaste : undefined}
                     className={`w-12 h-14 text-center text-xl font-bold border-2 rounded-lg transition-all duration-200 
-                      ${digit 
-                        ? 'border-green-500 bg-green-50 text-green-800' 
-                        : 'border-gray-300 bg-white text-gray-900'
+                      ${
+                        digit
+                          ? "border-green-500 bg-green-50 text-green-800"
+                          : "border-gray-300 bg-white text-gray-900"
                       } 
                       focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none
-                      ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:border-green-400'}
+                      ${
+                        isLoading
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:border-green-400"
+                      }
                     `}
                     disabled={isLoading}
                   />
                 ))}
               </div>
-              
+
               {/* Progress indicator */}
               <div className="flex justify-center mt-2">
                 <div className="flex gap-1">
@@ -266,7 +277,7 @@ export default function OtpPage({
                     <div
                       key={index}
                       className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                        digit ? 'bg-green-500' : 'bg-gray-300'
+                        digit ? "bg-green-500" : "bg-gray-300"
                       }`}
                     />
                   ))}
@@ -305,14 +316,16 @@ export default function OtpPage({
             {isLoading && (
               <div className="flex items-center justify-center py-3">
                 <div className="animate-spin rounded-full h-6 w-6 border-2 border-green-600 border-t-transparent mr-3"></div>
-                <span className="text-green-600 font-medium">{t.verifying}</span>
+                <span className="text-green-600 font-medium">
+                  {t.verifying}
+                </span>
               </div>
             )}
           </form>
 
           {/* Resend Code */}
           <div className="text-center mt-6 pt-6 border-t border-gray-200">
-            <button 
+            <button
               onClick={onBackToPhone}
               className="text-green-600 hover:text-green-700 text-sm font-medium hover:underline"
             >
