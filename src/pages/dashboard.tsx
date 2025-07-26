@@ -65,7 +65,7 @@ export default function Dashboard() {
                 </h2>
               </div>
               <p className="text-gray-600 text-sm mb-4">
-                स्वागत छ, {userData?.name}! Your farming companion is ready.
+                स्वागत छ, {userData?.userName}! Your farming companion is ready.
               </p>
               <div className="bg-green-50 rounded-lg p-3">
                 <div className="flex items-center gap-2 text-sm">
