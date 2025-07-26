@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Wheat } from 'lucide-react';
-import { useAuth } from '../contexts/firebaseauthcontext';
+import { useAuth } from '@/contexts/firebaseauthcontext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

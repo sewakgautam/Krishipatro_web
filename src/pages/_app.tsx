@@ -5,7 +5,7 @@
 
 import type { AppProps } from 'next/app';
 import '../app/globals.css'; // Your global styles
-import { AuthProvider } from '@/pages/contexts/firebaseauthcontext';
+import { AuthProvider } from '@/contexts/firebaseauthcontext';
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
