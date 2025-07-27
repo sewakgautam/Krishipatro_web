@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { DateTime } from "luxon";
-import * as cheerio from "cheerio";
+import { parse } from "node-html-parser";
 import axios from "axios";
 import { wrapper } from "axios-cookiejar-support";
 import { CookieJar } from "tough-cookie";
@@ -50,25 +50,93 @@ type MarketPriceRaw = {
   };
 };
 
+async function parseComparativePriceInfo(fromDate: string, toDate: string) {
+  await jar.removeAllCookies();
+  await client.get("https://kalimatimarket.gov.np/lang/" + "en", {
+    headers,
+    maxRedirects: 0,
+    validateStatus: (status) => status === 302 || status === 200,
+  });
+
+  const comparativePricePage = await client.get(
+    "https://kalimatimarket.gov.np/comparative-prices"
+  );
+
+  const comparativePriceRoot = parse(comparativePricePage.data);
+  const tokenInput = comparativePriceRoot.querySelector('input[name="_token"]');
+  const token = tokenInput?.getAttribute("value");
+
+  if (!token) {
+    throw new Error("Token not found");
+  }
+
+  const formData = new URLSearchParams();
+  formData.append("_token", token.toString());
+  formData.append("from", fromDate);
+  formData.append("to", toDate);
+
+  const data = await client.post(
+    "https://kalimatimarket.gov.np/comparative-prices",
+    formData.toString()
+  );
+
+  const html = data.data;
+  const root = parse(html);
+  const table = root.querySelector("#commodityPriceParticular");
+  const tableRows: string[][] = [];
+  if (table) {
+    const tbody = table.querySelector("tbody");
+    if (tbody) {
+      tbody
+        .querySelectorAll("tr")
+        .forEach((row: import("node-html-parser").HTMLElement) => {
+          const rowData: string[] = [];
+          row
+            .querySelectorAll("td")
+            .forEach((cell: import("node-html-parser").HTMLElement) => {
+              rowData.push(cell.text.trim());
+            });
+          if (rowData.length > 0) {
+            tableRows.push(rowData);
+          }
+        });
+    }
+  }
+
+  return tableRows.map((row) => {
+    const d = {
+      name: row[0],
+      avgPriceFrom: parseFloat(
+        (row[1]?.toLowerCase() ?? "").replace("rs", "").trim()
+      ),
+      avgPriceTo: parseFloat(
+        (row[2]?.toLowerCase() ?? "").replace("rs", "").trim()
+      ),
+      difference: parseFloat((row[3]?.toLowerCase() ?? "").replace("%", "")),
+      averageDiff: 0,
+    };
+    d.averageDiff = d.avgPriceTo - d.avgPriceFrom;
+    return d;
+  });
+}
+
 async function parseKalimatiMarketPriceData(
   date: string,
   lang: "en" | "np" = "np"
 ) {
-  const langRes = await client.get(
-    "https://kalimatimarket.gov.np/lang/" + lang,
-    {
-      headers,
-      maxRedirects: 0,
-      validateStatus: (status) => status === 302 || status === 200,
-    }
-  );
+  await client.get("https://kalimatimarket.gov.np/lang/" + lang, {
+    headers,
+    maxRedirects: 0,
+    validateStatus: (status) => status === 302 || status === 200,
+  });
 
   const pricePageRes = await client.get("https://kalimatimarket.gov.np/price", {
     headers,
   });
 
-  const priceDataHtml = cheerio.load(pricePageRes.data);
-  const token = priceDataHtml('input[name="_token"]').val();
+  const priceDataRoot = parse(pricePageRes.data);
+  const tokenInput = priceDataRoot.querySelector('input[name="_token"]');
+  const token = tokenInput?.getAttribute("value");
 
   if (!token) {
     throw new Error("Token not found");
@@ -84,44 +152,56 @@ async function parseKalimatiMarketPriceData(
   );
 
   const html = pricePageRes2.data;
-  const $ = cheerio.load(html);
+  const root = parse(html);
+  const table = root.querySelector("#commodityPriceParticular");
   const tableRows: string[][] = [];
-  const table = $("#commodityPriceParticular");
-
-  table.find("tbody tr").each((_: number, row: any) => {
-    const rowData: string[] = [];
-    $(row)
-      .find("td")
-      .each((_: number, cell: any) => {
-        rowData.push($(cell).text().trim());
-      });
-    if (rowData.length > 0) {
-      tableRows.push(rowData);
+  if (table) {
+    const tbody = table.querySelector("tbody");
+    if (tbody) {
+      tbody
+        .querySelectorAll("tr")
+        .forEach((row: import("node-html-parser").HTMLElement) => {
+          const rowData: string[] = [];
+          row
+            .querySelectorAll("td")
+            .forEach((cell: import("node-html-parser").HTMLElement) => {
+              rowData.push(cell.text.trim());
+            });
+          if (rowData.length > 0) {
+            tableRows.push(rowData);
+          }
+        });
     }
-  });
-
+  }
   return tableRows.map((row) => ({
     name: row[0],
-    unit: row[1].toLowerCase(),
-    minPrice: row[2].toLowerCase(),
-    maxPrice: row[3].toLowerCase(),
-    avgPrice: row[4].toLowerCase(),
+    unit: row[1]?.toLowerCase() ?? "",
+    minPrice: row[2]?.toLowerCase() ?? "",
+    maxPrice: row[3]?.toLowerCase() ?? "",
+    avgPrice: row[4]?.toLowerCase() ?? "",
   }));
 }
 
 async function getKalimatiPriceData(
   date: string
 ): Promise<Array<MarketPriceRaw["data"][string][number]>> {
-  const englishData = await parseKalimatiMarketPriceData(date, "en");
-  const nepaliData = await parseKalimatiMarketPriceData(date, "np");
+  const prevDate = DateTime.fromISO(date)
+    .minus({ days: 1 })
+    .toFormat("yyyy-MM-dd");
+  const [englishData, nepaliData, comparativePrices] = await Promise.all([
+    parseKalimatiMarketPriceData(date, "en"),
+    parseKalimatiMarketPriceData(date, "np"),
+    parseComparativePriceInfo(prevDate, date),
+  ]);
 
   let idCounter = 1;
   const merged = zip(
     englishData,
     nepaliData,
-    (a, b) =>
+    comparativePrices,
+    (a, b, c) =>
       ({
-        averageDiff: 0,
+        averageDiff: c.averageDiff,
         avgPrice: parseFloat(a.avgPrice.replace("rs", "")),
         maxPrice: parseFloat(a.maxPrice.replace("rs", "")),
         minPrice: parseFloat(a.minPrice.replace("rs", "")),
@@ -130,12 +210,13 @@ async function getKalimatiPriceData(
         market: 5,
         marketName: "Kalimati",
         marketNameNe: "कालिमाटी",
-        productSubType: idCounter,
+        productSubType: 0,
         productSubTypeName: a.name,
         productSubTypeNameNe: b.name,
-        percentChange: 0,
+        percentChange: c.difference,
         unit: b.unit,
-      } as MarketPriceRaw["data"][string][number])
+        dateNepali: "", // TODO: add nepali date
+      }),
   );
   return merged;
 }
@@ -162,6 +243,7 @@ export default async function handler(
   }
 
   try {
+    let startTime = Date.now();
     const resp = await fetch(
       `https://krishibajar.koshi.gov.np/api/market/market_price_summary/market_data/?&date=${targetDate}`,
       {
@@ -182,6 +264,9 @@ export default async function handler(
         mode: "cors",
       }
     );
+    let endTime = Date.now();
+    let duration = endTime - startTime;
+    // console.log(`Total time taken to fetch: ${duration} ms`);
 
     let data: MarketPriceRaw | null = null;
     if (!resp.ok) {
@@ -189,12 +274,16 @@ export default async function handler(
     }
 
     data = (await resp.json()) as MarketPriceRaw;
+    startTime = Date.now();
     const kalimatiData = await getKalimatiPriceData(targetDate);
+    endTime = Date.now();
+    duration = endTime - startTime;
+    // console.log(`Total time taken to fetch: ${duration} ms`);
 
     data.data["5"] = kalimatiData;
 
     // Add the requested date info to the response for debugging
-    console.log(`Fetching market data for date: ${targetDate}`);
+    // console.log(`Fetching market data for date: ${targetDate}`);
 
     return res.status(resp.status).json(data);
   } catch (error) {
