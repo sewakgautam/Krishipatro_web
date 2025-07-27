@@ -1,48 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Search, TrendingUp, TrendingDown, Minus, MapPin, Calendar, Leaf, BarChart3, Filter, RefreshCw, CalendarDays, Menu, X } from 'lucide-react';
 import Image from 'next/image';
+import { MarketPriceRaw } from './api/market-price';
 
-interface MarketHeader {
-  id: number;
-  name: string;
-  nameNe: string;
-  latestDate: string;
-  latestDateNe: string;
-}
 
-interface ProductRow {
-  sid: number;
-  name: string;
-  nameNe: string;
-  category: number;
-}
-
-interface MarketData {
-  id: number;
-  date: string;
-  maxPrice: number;
-  minPrice: number;
-  avgPrice: number;
-  market: number;
-  marketName: string;
-  marketNameNe: string;
-  productSubType: number;
-  productSubTypeName: string;
-  productSubTypeNameNe: string;
-  dateNepali: string;
-  averageDiff: number;
-  percentChange: number;
-  unit: string;
-}
-
-interface ApiResponse {
-  headers: MarketHeader[];
-  rows: ProductRow[];
-  data: { [key: string]: MarketData[] };
-}
+type MarketData = MarketPriceRaw['data'][string][number];
 
 const MarketPage: React.FC = () => {
-  const [marketData, setMarketData] = useState<ApiResponse | null>(null);
+  const [marketData, setMarketData] = useState<MarketPriceRaw | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -69,10 +34,10 @@ const MarketPage: React.FC = () => {
     try {
       setRefreshing(true);
       setError(null);
-      
+
       const dateToFetch = date || selectedDate;
       const url = dateToFetch ? `/api/market-price?date=${dateToFetch}` : '/api/market-price';
-      
+
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -84,12 +49,12 @@ const MarketPage: React.FC = () => {
         throw new Error(`API Error: ${response.status} - ${response.statusText}`);
       }
 
-      const data: ApiResponse = await response.json();
-      
+      const data: MarketPriceRaw = await response.json();
+
       if ('error' in data) {
         throw new Error((data as any).error);
       }
-      
+
       setMarketData(data);
       setError(null);
     } catch (err) {
@@ -136,25 +101,25 @@ const MarketPage: React.FC = () => {
 
   const getAllMarketData = (): MarketData[] => {
     if (!marketData) return [];
-    
+
     const allData: MarketData[] = [];
     Object.values(marketData.data).forEach(marketArray => {
       allData.push(...marketArray);
     });
-    
+
     return allData;
   };
 
   const filteredData = getAllMarketData().filter(item => {
     const matchesSearch = item.productSubTypeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.productSubTypeNameNe.includes(searchTerm);
-    
+      item.productSubTypeNameNe.includes(searchTerm);
+
     const matchesMarket = selectedMarket === 'all' || item.market.toString() === selectedMarket;
-    
+
     const productInfo = marketData?.rows.find(row => row.sid === item.productSubType);
-    const matchesCategory = selectedCategory === 'all' || 
-                           (productInfo && productInfo.category.toString() === selectedCategory);
-    
+    const matchesCategory = selectedCategory === 'all' ||
+      (productInfo && productInfo.category.toString() === selectedCategory);
+
     return matchesSearch && matchesMarket && matchesCategory;
   });
 
@@ -164,7 +129,7 @@ const MarketPage: React.FC = () => {
     const priceIncreases = allData.filter(item => item.percentChange > 0).length;
     const priceDecreases = allData.filter(item => item.percentChange < 0).length;
     const noChange = allData.filter(item => item.percentChange === 0).length;
-    
+
     return { totalProducts, priceIncreases, priceDecreases, noChange };
   };
 
@@ -215,19 +180,19 @@ const MarketPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center gap-3">
-                            <div className="flex items-center gap-3">
-                                        <Image
-                                          src={"/mainlogo.png"}
-                                          alt="Description"
-                                          width={300}
-                                          height={40}
-                                          className="rounded-full"
-                                        />
-                                      </div>
-                          </div>
-              
+                <div className="flex items-center gap-3">
+                  <Image
+                    src={"/mainlogo.png"}
+                    alt="Description"
+                    width={300}
+                    height={40}
+                    className="rounded-full"
+                  />
+                </div>
+              </div>
+
             </div>
-            
+
             <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
               <div className="flex items-center gap-2 flex-1 sm:flex-initial">
                 <CalendarDays className="w-4 h-4 text-emerald-600" />
@@ -238,7 +203,7 @@ const MarketPage: React.FC = () => {
                   className="text-xs sm:text-sm border text-black border-gray-300 rounded-lg px-2 sm:px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 flex-1 sm:flex-initial"
                 />
               </div>
-              
+
               <button
                 onClick={() => fetchMarketData(selectedDate)}
                 disabled={refreshing}
@@ -249,7 +214,7 @@ const MarketPage: React.FC = () => {
               </button>
             </div>
           </div>
-          
+
           <div className="mt-4 sm:hidden">
             <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
               <Calendar className="w-4 h-4" />
@@ -325,7 +290,7 @@ const MarketPage: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            
+
             {/* Mobile Filter Toggle */}
             <div className="flex items-center justify-between sm:hidden">
               <span className="text-sm font-medium text-gray-700">फिल्टर</span>
@@ -337,9 +302,9 @@ const MarketPage: React.FC = () => {
                 {showFilters ? 'लुकाउनुहोस्' : 'देखाउनुहोस्'}
               </button>
             </div>
-            
+
             {/* Filters */}
-            <div className={`${showFilters ? 'block' : 'hidden'} sm:block space-y-3 sm:space-y-0 sm:flex sm:gap-4`}>
+            <div className={`${showFilters ? 'block' : 'hidden'} space-y-3 sm:space-y-0 sm:flex sm:gap-4`}>
               <div className="relative flex-1 sm:max-w-[200px]">
                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <select
@@ -394,7 +359,7 @@ const MarketPage: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-gray-700">
-                      {marketProducts.filter(p => p.percentChange > 0).length}↑ 
+                      {marketProducts.filter(p => p.percentChange > 0).length}↑
                       {marketProducts.filter(p => p.percentChange < 0).length}↓
                     </p>
                     <p className="text-xs text-gray-500">परिवर्तन</p>
@@ -419,7 +384,7 @@ const MarketPage: React.FC = () => {
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900">आजको बजार मूल्य</h2>
             <p className="text-xs sm:text-sm text-gray-500">सबै बजारका ताजा दरहरू</p>
           </div>
-          
+
           {/* Mobile Card View */}
           <div className="sm:hidden">
             {filteredData.length === 0 ? (
@@ -436,10 +401,9 @@ const MarketPage: React.FC = () => {
                     <div key={`${item.market}-${item.productSubType}`} className="p-4 hover:bg-gray-50">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <div className={`w-2 h-2 rounded-full mt-2 ${
-                            productInfo?.category === 2 ? 'bg-green-400' : 
+                          <div className={`w-2 h-2 rounded-full mt-2 ${productInfo?.category === 2 ? 'bg-green-400' :
                             productInfo?.category === 3 ? 'bg-orange-400' : 'bg-gray-400'
-                          }`}></div>
+                            }`}></div>
                           <div>
                             <div className="text-sm font-medium text-gray-900">
                               {item.productSubTypeNameNe}
@@ -456,9 +420,9 @@ const MarketPage: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="text-xs text-gray-500 mb-2">{item.marketNameNe}</div>
-                      
+
                       <div className="grid grid-cols-3 gap-4 text-sm">
                         <div>
                           <div className="text-xs text-gray-500">न्यूनतम</div>
@@ -473,7 +437,7 @@ const MarketPage: React.FC = () => {
                           <div className="font-bold text-emerald-600">रू {item.avgPrice.toLocaleString()}</div>
                         </div>
                       </div>
-                      
+
                       <div className="mt-2 text-xs text-gray-500">
                         इकाई: {item.unit}
                       </div>
@@ -483,7 +447,7 @@ const MarketPage: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           {/* Desktop Table View */}
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full">
@@ -530,10 +494,9 @@ const MarketPage: React.FC = () => {
                       <tr key={`${item.market}-${item.productSubType}`} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
-                            <div className={`w-2 h-2 rounded-full ${
-                              productInfo?.category === 2 ? 'bg-green-400' : 
+                            <div className={`w-2 h-2 rounded-full ${productInfo?.category === 2 ? 'bg-green-400' :
                               productInfo?.category === 3 ? 'bg-orange-400' : 'bg-gray-400'
-                            }`}></div>
+                              }`}></div>
                             <div>
                               <div className="text-sm font-medium text-gray-900">
                                 {item.productSubTypeNameNe}

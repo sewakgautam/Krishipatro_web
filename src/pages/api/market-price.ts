@@ -20,7 +20,7 @@ const headers = {
   "sec-gpc": "1",
 };
 
-type MarketPriceRaw = {
+export type MarketPriceRaw = {
   headers: {
     id: number;
     name: string;
@@ -195,29 +195,23 @@ async function getKalimatiPriceData(
   ]);
 
   let idCounter = 1;
-  const merged = zip(
-    englishData,
-    nepaliData,
-    comparativePrices,
-    (a, b, c) =>
-      ({
-        averageDiff: c.averageDiff,
-        avgPrice: parseFloat(a.avgPrice.replace("rs", "")),
-        maxPrice: parseFloat(a.maxPrice.replace("rs", "")),
-        minPrice: parseFloat(a.minPrice.replace("rs", "")),
-        date: date,
-        id: idCounter++,
-        market: 5,
-        marketName: "Kalimati",
-        marketNameNe: "कालिमाटी",
-        productSubType: 0,
-        productSubTypeName: a.name,
-        productSubTypeNameNe: b.name,
-        percentChange: c.difference,
-        unit: b.unit,
-        dateNepali: "", // TODO: add nepali date
-      }),
-  );
+  const merged = zip(englishData, nepaliData, comparativePrices, (a, b, c) => ({
+    averageDiff: c.averageDiff,
+    avgPrice: parseFloat(a.avgPrice.replace("rs", "")),
+    maxPrice: parseFloat(a.maxPrice.replace("rs", "")),
+    minPrice: parseFloat(a.minPrice.replace("rs", "")),
+    date: date,
+    id: idCounter++,
+    market: 5,
+    marketName: "Kalimati",
+    marketNameNe: "कालिमाटी",
+    productSubType: 0,
+    productSubTypeName: a.name,
+    productSubTypeNameNe: b.name,
+    percentChange: c.difference,
+    unit: b.unit,
+    dateNepali: "", // TODO: add nepali date
+  }));
   return merged;
 }
 
@@ -228,6 +222,7 @@ export default async function handler(
   // Get date from query parameter or use default
   const { date } = req.query;
 
+  // default current date
   let targetDate: string;
 
   if (date && typeof date === "string") {
@@ -243,7 +238,6 @@ export default async function handler(
   }
 
   try {
-    let startTime = Date.now();
     const resp = await fetch(
       `https://krishibajar.koshi.gov.np/api/market/market_price_summary/market_data/?&date=${targetDate}`,
       {
@@ -264,9 +258,6 @@ export default async function handler(
         mode: "cors",
       }
     );
-    let endTime = Date.now();
-    let duration = endTime - startTime;
-    // console.log(`Total time taken to fetch: ${duration} ms`);
 
     let data: MarketPriceRaw | null = null;
     if (!resp.ok) {
@@ -274,16 +265,10 @@ export default async function handler(
     }
 
     data = (await resp.json()) as MarketPriceRaw;
-    startTime = Date.now();
     const kalimatiData = await getKalimatiPriceData(targetDate);
-    endTime = Date.now();
-    duration = endTime - startTime;
-    // console.log(`Total time taken to fetch: ${duration} ms`);
 
     data.data["5"] = kalimatiData;
 
-    // Add the requested date info to the response for debugging
-    // console.log(`Fetching market data for date: ${targetDate}`);
 
     return res.status(resp.status).json(data);
   } catch (error) {
