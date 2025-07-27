@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { DateTime } from "luxon";
 import * as cheerio from "cheerio";
-import * as cookie from "cookie";
 import axios from "axios";
 import { wrapper } from "axios-cookiejar-support";
 import { CookieJar } from "tough-cookie";
