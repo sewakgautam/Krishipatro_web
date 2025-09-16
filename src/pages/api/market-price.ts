@@ -16,7 +16,7 @@ import {
   orderBy,
   limit 
 } from "firebase/firestore";
-import { db } from '../../../../lib/firebaseauth';
+import { db } from '../../../lib/firebaseauth';
 
 const jar = new CookieJar();
 const client = wrapper(axios.create({ jar, withCredentials: true }));
