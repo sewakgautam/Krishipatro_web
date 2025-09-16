@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, TrendingUp, TrendingDown, Minus, MapPin, Calendar, Leaf, BarChart3, Filter, RefreshCw, CalendarDays, Menu, X } from 'lucide-react';
 import Image from 'next/image';
-import { MarketPriceRaw } from './api/v1/market-price';
+import { MarketPriceRaw } from './api/market-price';
 
 
 type MarketData = MarketPriceRaw['data'][string][number];
@@ -36,7 +36,7 @@ const MarketPage: React.FC = () => {
       setError(null);
 
       const dateToFetch = date || selectedDate;
-      const url = dateToFetch ? `/api/v1/market-price?date=${dateToFetch}` : '/api/market-price';
+      const url = dateToFetch ? `/api/market-price?date=${dateToFetch}` : '/api/market-price';
 
       const response = await fetch(url, {
         method: 'GET',
