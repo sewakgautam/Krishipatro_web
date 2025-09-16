@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Phone, ArrowRight, Wheat } from "lucide-react";
 import { signInWithPhoneNumber, RecaptchaVerifier } from "firebase/auth";
-import { auth } from "../../../firebaseauth";
+import { auth } from "../../../lib/firebaseauth";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/router";
 import Image from 'next/image';

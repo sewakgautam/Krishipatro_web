@@ -4,7 +4,7 @@ import { User, ArrowRight, Shield, Wheat } from "lucide-react";
 import { updateProfile } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore";
 import toast, { Toaster } from "react-hot-toast";
-import { db } from '../../../firebaseauth';
+import { db } from '../../../lib/firebaseauth';
 import FarmSuccessAnimation from './successanimation';
 
 

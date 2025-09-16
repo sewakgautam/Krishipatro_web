@@ -5,7 +5,7 @@ import { ConfirmationResult } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 import toast, { Toaster } from "react-hot-toast";
-import { db } from "../../../firebaseauth";
+import { db } from "../../../lib/firebaseauth";
 import FarmSuccessAnimation from "./successanimation";
 
 interface OtpPageProps {

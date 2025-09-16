@@ -7,7 +7,7 @@ import {
   User 
 } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../../firebaseauth';
+import { auth, db } from '../../lib/firebaseauth';
 
 interface UserData {
   uid: string;
